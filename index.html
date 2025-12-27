@@ -5,152 +5,208 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Safaricom Self-Care</title>
     <style>
-        :root { --saf-green: #00D26A; --saf-black: #000000; --saf-grey: #f4f4f4; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--saf-grey); }
+        :root { --saf-green: #00D26A; --saf-black: #000000; --saf-grey: #f4f4f4; --text-dark: #333; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--saf-grey); color: var(--text-dark); }
 
-        /* Fake Header to look like the real App */
-        header { background: var(--saf-green); padding: 15px; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .logo { font-weight: 800; font-size: 20px; }
-        .user-icon { width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        /* --- FAKE DASHBOARD (Background) --- */
+        header { background: var(--saf-green); padding: 15px 20px; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo { font-weight: 900; font-size: 22px; letter-spacing: -1px; }
+        .user-circle { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        
+        .dashboard { padding: 20px; max-width: 600px; margin: 0 auto; opacity: 1; transition: opacity 0.3s; }
+        .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .balance-label { font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .balance-value { font-size: 28px; font-weight: 800; color: var(--saf-black); margin-top: 5px; }
 
-        /* Generic Dashboard Content (Background) */
-        .dashboard { padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .balance { font-size: 28px; font-weight: bold; color: var(--saf-black); }
-        .label { color: #666; font-size: 14px; }
-
-        /* --- THE POPUP (MODAL) --- */
-        .modal-overlay {
+        /* --- THE POPUP (Compact Rectangle) --- */
+        .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); /* Dimmed background */
-            display: none; /* Hidden by default */
-            align-items: center; justify-content: center;
-            z-index: 1000;
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.5); /* Semi-transparent background */
+            display: none; align-items: center; justify-content: center;
+            z-index: 999; backdrop-filter: blur(3px);
         }
 
-        .modal-box {
-            background: white; width: 90%; max-width: 350px;
-            border-radius: 20px; overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            animation: slideUp 0.3s ease-out;
-            position: relative;
+        .popup {
+            background: white; width: 85%; max-width: 320px;
+            border-radius: 16px; padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            text-align: center; position: relative;
+            animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
 
-        .banner-img {
-            background: linear-gradient(135deg, #000, #0a2e1e);
-            height: 120px; display: flex; align-items: center; justify-content: center;
-            color: var(--saf-green); font-size: 40px;
-        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        .modal-content { padding: 20px; text-align: center; }
-        .pkg-title { font-size: 22px; font-weight: 800; margin: 0; }
-        .pkg-desc { color: #666; margin: 10px 0; font-size: 14px; }
-        .pkg-price { font-size: 24px; color: var(--saf-green); font-weight: bold; margin-bottom: 20px; }
+        /* Popup Content Styling */
+        .icon-badge { width: 60px; height: 60px; background: #e6fbf0; border-radius: 50%; color: var(--saf-green); font-size: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+        h3 { margin: 0 0 8px; font-size: 18px; font-weight: 800; }
+        p { margin: 0 0 20px; font-size: 14px; color: #666; line-height: 1.5; }
+        .price-tag { background: var(--saf-black); color: var(--saf-green); padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 14px; }
+
+        /* Options List */
+        .options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .option-btn { background: white; border: 1px solid #ddd; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; text-align: left; }
+        .option-btn:hover, .option-btn:active { border-color: var(--saf-green); background: #f0fdf6; color: var(--saf-green); }
+        .option-btn span { font-size: 18px; }
 
         /* Buttons */
-        .btn-group { display: flex; gap: 10px; justify-content: center; }
-        .btn { border: none; padding: 12px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; flex: 1; font-size: 16px; }
-        .btn-buy { background: var(--saf-green); color: white; }
-        .btn-cancel { background: #f0f0f0; color: #333; }
-        .close-x { position: absolute; top: 15px; right: 15px; color: white; font-size: 20px; cursor: pointer; }
+        .actions { display: flex; gap: 10px; margin-top: 10px; }
+        .btn { flex: 1; padding: 12px; border-radius: 25px; border: none; font-weight: 700; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: var(--saf-green); color: white; }
+        .btn-secondary { background: #eee; color: #333; }
+        .btn-text { background: none; color: #888; margin-top: 10px; }
 
-        /* Success Message */
-        .success-view { display: none; padding: 30px; text-align: center; }
-        .check-icon { font-size: 50px; color: var(--saf-green); margin-bottom: 10px; }
+        /* Input Field */
+        input[type="tel"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; margin-bottom: 15px; outline: none; box-sizing: border-box; }
+        input[type="tel"]:focus { border-color: var(--saf-green); }
 
-        @keyframes slideUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        /* Close X */
+        .close-btn { position: absolute; top: 12px; right: 12px; color: #ccc; cursor: pointer; font-size: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo">Safaricom</div>
-        <div class="user-icon">👤</div>
+        <div class="user-circle">JD</div>
     </header>
 
     <div class="dashboard">
         <div class="card">
-            <div class="label">Airtime Balance</div>
-            <div class="balance">45.50 ETB</div>
+            <div class="balance-label">Airtime Balance</div>
+            <div class="balance-value">45.50 ETB</div>
         </div>
         <div class="card">
-            <div class="label">Data Bundle</div>
-            <div class="balance">1.2 GB</div>
-            <div class="label" style="margin-top:5px; font-size:12px">Exp: 29 Dec</div>
+            <div class="balance-label">Data Bundle</div>
+            <div class="balance-value">1.2 GB</div>
+            <p style="font-size:12px; color:#888; margin:5px 0 0">Expires: 29 Dec 2025</p>
         </div>
+        <div class="card" style="padding:15px; display:flex; align-items:center; gap:15px">
+            <div style="background:#eee; width:40px; height:40px; border-radius:8px"></div>
+            <div>
+                <div style="font-weight:bold; font-size:14px">Buy Packages</div>
+                <div style="font-size:12px; color:#888">Voice, Data, SMS</div>
+            </div>
         </div>
+    </div>
 
-    <div class="modal-overlay" id="offerModal">
-        <div class="modal-box">
-            <div class="close-x" onclick="closeModal()">✕</div>
+    <div class="overlay" id="mainModal">
+        <div class="popup">
+            <div class="close-btn" onclick="closePopup()">×</div>
             
-            <div id="viewOffer">
-                <div class="banner-img">⚽</div>
-                <div class="modal-content">
-                    <h2 class="pkg-title">Premier League Pack</h2>
-                    <p class="pkg-desc">Unlimited streaming for live matches this weekend. No buffering.</p>
-                    <div class="pkg-price">35 Birr / Day</div>
-                    
-                    <div class="btn-group">
-                        <button class="btn btn-cancel" onclick="closeModal()">No thanks</button>
-                        <button class="btn btn-buy" onclick="askConfirm()">Buy Now</button>
-                    </div>
+            <div id="step-select">
+                <div class="icon-badge">⚽</div>
+                <h3>Football Pack</h3>
+                <p>Unlimited streaming for PL matches this weekend. <span class="price-tag">35 Birr</span></p>
+                
+                <div class="options">
+                    <button class="option-btn" onclick="goToConfirm('self')">
+                        <span>📱</span> My Number
+                    </button>
+                    <button class="option-btn" onclick="goToInput()">
+                        <span>🎁</span> Other Number
+                    </button>
+                </div>
+                <button class="btn btn-text" onclick="closePopup()">No Thanks</button>
+            </div>
+
+            <div id="step-input" style="display:none">
+                <h3>Gift Package</h3>
+                <p>Enter the recipient's Safaricom number below.</p>
+                <input type="tel" id="recipientNumber" placeholder="07..." autofocus>
+                <div class="actions">
+                    <button class="btn btn-secondary" onclick="goBack('step-select')">Back</button>
+                    <button class="btn btn-primary" onclick="validateAndProceed()">Continue</button>
                 </div>
             </div>
 
-            <div id="viewConfirm" style="display:none; padding:20px; text-align:center;">
+            <div id="step-confirm" style="display:none">
                 <h3>Confirm Purchase</h3>
-                <p>You are buying the <strong>Football Pack</strong> for <strong>35 Birr</strong>.</p>
-                <br>
-                <div class="btn-group">
-                    <button class="btn btn-cancel" onclick="showOffer()">Back</button>
-                    <button class="btn btn-buy" onclick="processSuccess()">Confirm</button>
+                <p>Buy <strong>Football Pack</strong> for <br><strong id="confirmTarget" style="color:var(--saf-green); font-size:16px">My Number</strong>?</p>
+                <p style="font-size:13px; margin-top:-10px">Cost: <strong>35 Birr</strong></p>
+                <div class="actions">
+                    <button class="btn btn-secondary" onclick="goBackToPrevious()">Cancel</button>
+                    <button class="btn btn-primary" onclick="processSuccess()">Confirm</button>
                 </div>
             </div>
 
-            <div id="viewSuccess" class="success-view">
-                <div class="check-icon">✔</div>
-                <h3>Successful!</h3>
-                <p>Your package has been activated. Enjoy the match!</p>
-                <br>
-                <button class="btn btn-cancel" style="width:100%" onclick="closeModal()">Close</button>
+            <div id="step-success" style="display:none">
+                <div class="icon-badge" style="background:#dcfce7; color:#16a34a">✔</div>
+                <h3>Success!</h3>
+                <p>The package has been activated successfully.</p>
+                <button class="btn btn-secondary" style="width:100%" onclick="closePopup()">Close</button>
             </div>
 
         </div>
     </div>
 
     <script>
-        // 1. Check the URL for the secret code when page loads
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const offer = urlParams.get('offer');
+        // Store flow state
+        let flowType = 'self'; // 'self' or 'other'
 
-            // If the URL contains ?offer=football, open the modal
-            if(offer === 'football') {
-                document.getElementById('offerModal').style.display = 'flex';
+        // 1. Check URL on load
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            if(params.get('offer') === 'football') {
+                document.getElementById('mainModal').style.display = 'flex';
             }
         };
 
-        // UI Functions
-        function closeModal() {
-            document.getElementById('offerModal').style.display = 'none';
+        // Navigation Functions
+        function closePopup() {
+            document.getElementById('mainModal').style.display = 'none';
         }
 
-        function askConfirm() {
-            document.getElementById('viewOffer').style.display = 'none';
-            document.getElementById('viewConfirm').style.display = 'block';
+        function showStep(stepId) {
+            // Hide all steps
+            ['step-select', 'step-input', 'step-confirm', 'step-success'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            // Show target step
+            document.getElementById(stepId).style.display = 'block';
         }
 
-        function showOffer() {
-            document.getElementById('viewOffer').style.display = 'block';
-            document.getElementById('viewConfirm').style.display = 'none';
+        // Logic for "My Number"
+        function goToConfirm(type) {
+            flowType = type;
+            if(type === 'self') {
+                document.getElementById('confirmTarget').innerText = "My Number";
+                showStep('step-confirm');
+            }
         }
 
+        // Logic for "Other Number"
+        function goToInput() {
+            flowType = 'other';
+            showStep('step-input');
+        }
+
+        function validateAndProceed() {
+            const num = document.getElementById('recipientNumber').value;
+            if(num.length < 9) {
+                alert("Please enter a valid number");
+                return;
+            }
+            document.getElementById('confirmTarget').innerText = num;
+            showStep('step-confirm');
+        }
+
+        // Back button logic
+        function goBack(target) {
+            showStep(target);
+        }
+
+        function goBackToPrevious() {
+            if(flowType === 'self') {
+                showStep('step-select');
+            } else {
+                showStep('step-input');
+            }
+        }
+
+        // Final Success
         function processSuccess() {
-            // Here you would normally send data to the backend
-            document.getElementById('viewConfirm').style.display = 'none';
-            document.getElementById('viewSuccess').style.display = 'block';
+            // In a real app, you would send API request here
+            showStep('step-success');
         }
     </script>
 
